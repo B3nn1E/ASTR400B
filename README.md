@@ -1,2 +1,2 @@
 # ASTR400B
-Repository for Astronomy 400B - theoretical cosmology course
+This repository consists all courseworks for Astronomy 400B - theoretical cosmology course
