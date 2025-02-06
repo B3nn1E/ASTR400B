@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{amsmath}
+
+\begin{document}
+
+\title{ASTR 400B Homework 3}
+\author{Ben A Phan}
+\date{\today}
+\maketitle
+
+\section*{Question 3:}
+The table of 3 galaxy masses: Milky Way, M31, and M33 are attached below:
+
+\begin{table}[h]
+    \centering
+    \renewcommand{\arraystretch}{1.2}
+    \setlength{\tabcolsep}{8pt}
+    \begin{tabularx}{\textwidth}{lXXXXX} 
+        \toprule
+        \textbf{Galaxy Name} & 
+        \textbf{Halo Mass} ($10^{12} M_{\odot}$) & 
+        \textbf{Disk Mass} ($10^{12} M_{\odot}$) & 
+        \textbf{Bulge Mass} ($10^{12} M_{\odot}$) & 
+        \textbf{Total Mass} ($10^{12} M_{\odot}$) &
+        \textbf{\( f_{\text{bar}}\)} \\
+        \midrule
+         Milky Way & 1.975 & 0.075 & 0.01 & 2.06 & 0.041   \\
+         M31 & 1.921 & 0.12 & 0.019 & 2.06 & 0.067 \\
+         M33 & 0.187 & 0.009 & 0.0 & 0.196 & 0.046 \\
+        \midrule
+        \textbf{\textit{Local Group}} & \textbf{4.083} & \textbf{0.204} & \textbf{0.029} & \textbf{4.316} & \textbf{0.054} \\
+        \bottomrule
+    \end{tabularx}
+    \caption{Mass Breakdown of the Local Group galaxies.}
+    \label{tab:my_label}
+\end{table}
+
+\section*{Question 4:}
+
+\begin{enumerate}
+    \item \textbf{How does the total mass of the MW and M31 compare in this simulation? Which galaxy component dominates this total mass?} \\ [4pt] 
+    \textit{Answer:} From the mass table, the 2 galaxies have similar mass even though M31 is a bit heavier if I remember correctly. After office hours, Professor Besla pointed out that this simulation took the radius much further away than the typical literature ($> 260$ kpc). Therefore the mass of these 2 galaxies seems to be a bit bigger than the conventional values and are roughly similar in this case (so my numbers aren't wrong!). The component that dominates the total mass is the \textbf{halo mass} since it consists of dark matter which is the majority of galaxies' mass
+
+    \item \textbf{How does the stellar mass of the MW and M31 compare? Which galaxy is expected to be more luminous? } \\ [4pt]
+    \textit{Answer:} The stellar mass for M31 is higher than the MW from the table, suggesting it is also more luminous since stellar mass correlates directly with the number of stars/ number of big bright stars in the galaxy. 
+
+    \item \textbf{How does the total dark matter mass of MW and M31 compare in this simulation (ratio)? Is this surprising, given their difference in stellar mass?} \\ [4pt]
+    \textit{Answer:} Surprisingly, despite MW's supposedly smaller total mass (which is wrong in this case after I went to office hours), it has quite a bit more dark matter due to its higher halo mass. It's still surprising since I would expect these 2 to engulf a similar amount of dark matter. Looking at the halo mass\textbf{\( f_{\text{bar}}\)} ratio of both galaxies (4.1 \% for MW and 6.7 \% for M31), I can see that MW is made up of dark matter too. Dark matter is truly a big mystery of our universe.\\ 
+    Update: After the lecture today, I realized I had been tricked and bamboozled. This simulation is a fraud as it has been more than 10 years since. 
+
+    \item \textbf{ What is the ratio of stellar mass to total mass for each galaxy (i.e., the baryon fraction)? In the Universe, the cosmic baryon fraction is approximately:
+    \[
+    \frac{\Omega_b}{\Omega_m} \approx 0.16
+    \]
+    How does this ratio compare to the values computed for MW and M31? Given that the total gas mass in the disks of these galaxies is negligible compared to the stellar mass, why might the universal baryon fraction differ from that in these galaxies?}  \\ [4pt]
+   
+    \textit{Answer:} The baryon fraction in MW and M31 is significantly lower than the universal value. I think it is because a lot of baryons exist in interstellar gas, therefore not accounting for the total gas mass in the disks might have neglected a good junk of baryons. Additionally, these gases are also ejected or used in the galaxy over time, making it significantly lower than the universal value. Now these gases exist within the CGM parts of the galaxies, which is the very outer part/ not accounted for in this simulation. 
+
+\end{enumerate}
+
+\end{document}
