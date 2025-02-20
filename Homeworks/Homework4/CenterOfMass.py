@@ -161,14 +161,15 @@ class CenterOfMass:
             # and the new one.                                                                                         
             change = np.abs(r_COM - r_COM2)
             # uncomment the following line if you want to check this                                                                                               
-            print ("CHANGE = ", change)                                                                                     
+            # print ("CHANGE = ", change)                                                                                     
 
             # Before loop continues, reset : r_max, particle separations and COM                                        
 
             # reduce the volume by a factor of 2 again                                                                 
             r_max /= 2.0
             # check this.                                                                                              
-            print ("maxR", r_max)                                                                                      
+            # print ("maxR", r_max)                                                                                      
+
 
             # Change the frame of reference to the newly computed COM.                                                 
             # subtract the new COM
@@ -247,4 +248,3 @@ class CenterOfMass:
         # set the correct units usint astropy
         # round all values                                                                                        
         return np.round(v_COM, 2)
-    
