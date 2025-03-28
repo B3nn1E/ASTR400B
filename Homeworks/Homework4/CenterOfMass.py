@@ -1,16 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 18 13:57:08 2025
-
-@author: kietb
-"""
-# import modules
 import numpy as np
 import astropy.units as u
-import astropy.table as tbl
 import sys
 import os
 
+# Make sure you import the Read function (and possibly other needed packages) at the top
 # Change path to homework3 where the ReadFile.py file is
 module_path = r'C:\Users\kietb\OneDrive\Desktop\Suffering\Undergrad\ASTR400B\Homeworks\Homework3'
 
@@ -21,230 +14,199 @@ sys.path.append(module_path)
 from ReadFile import Read
 
 class CenterOfMass:
-# Class to define COM position and velocity properties 
-# of a given galaxy and simulation snapshot
-
+    # Class to define COM position and velocity properties of a given galaxy and simulation snapshot
+    
     def __init__(self, filename, ptype):
-        ''' Class to calculate the 6-D phase-space position of a galaxy's center of mass using
-        a specified particle type. 
-            
-            PARAMETERS
-            ----------
-            filename : `str`
-                snapshot file
-            ptype : `int; 1, 2, or 3`
-                particle type to use for COM calculations
-        '''
-     
-        # read data in the given file using Read
-        self.time, self.total, self.data = Read(filename)                                                                                             
-
-        #create an array to store indexes of particles of desired Ptype                                
-        self.index = np.where(self.data['type'] == ptype)
-
-        # store the mass, positions, velocities of only the particles of the given type
-        # the following only gives the example of storing the mass
-        self.m = self.data['m'][self.index] 
-        # write your own code to complete this for positions and velocities
-        self.x = self.data['x'][self.index]
-        self.y = self.data['y'][self.index]
-        self.z = self.data['z'][self.index]
-        self.vx = self.data['vx'][self.index]
-        self.vy = self.data['vy'][self.index]
-        self.vz = self.data['vz'][self.index]
-
-
-    def COMdefine(self,a,b,c,m):
-        ''' Method to compute the COM of a generic vector quantity by direct weighted averaging.
+        ''' 
+        Class to calculate the 6-D phase-space center of mass of a galaxy 
+        using a specified particle type.
         
         PARAMETERS
         ----------
-        a : `float or np.ndarray of floats`
-            first vector component
-        b : `float or np.ndarray of floats`
-            second vector component
-        c : `float or np.ndarray of floats`
-            third vector component
-        m : `float or np.ndarray of floats`
-            particle masses
+        filename : str
+            Snapshot file name (e.g., 'MW_000.txt')
+        ptype : int
+            Particle type (1=Halo, 2=Disk, 3=Bulge) for which to compute COM
+        '''
+     
+        # 1) Read data in the given file using Read
+        self.time, self.total, self.data = Read(filename)  
+        
+        # 2) Create an index array to store indices of particles of the desired Ptype
+        self.index = np.where(self.data['type'] == ptype)
+        
+        # 3) Store the mass, positions, velocities of only the particles of the given type
+        self.m = self.data['m'][self.index]          # masses
+        self.x = self.data['x'][self.index]          # x-positions
+        self.y = self.data['y'][self.index]          # y-positions
+        self.z = self.data['z'][self.index]          # z-positions
+        self.vx = self.data['vx'][self.index]        # x-velocities
+        self.vy = self.data['vy'][self.index]        # y-velocities
+        self.vz = self.data['vz'][self.index]        # z-velocities
+
+
+    def COMdefine(self, a, b, c, m):
+        '''
+        Method to compute the generic center of mass (COM) of a given vector
+        quantity (e.g., position or velocity) by direct weighted averaging.
+        
+        PARAMETERS
+        ----------
+        a : float or np.ndarray
+            first component array (e.g., x or vx)
+        b : float or np.ndarray
+            second component array (e.g., y or vy)
+        c : float or np.ndarray
+            third component array (e.g., z or vz)
+        m : float or np.ndarray
+            array of particle masses
         
         RETURNS
         -------
-        a_com : `float`
-            first component on the COM vector
-        b_com : `float`
-            second component on the COM vector
-        c_com : `float`
-            third component on the COM vector
+        a_com : float
+            COM of the first component
+        b_com : float
+            COM of the second component
+        c_com : float
+            COM of the third component
         '''
-        # write your own code to compute the generic COM 
-        # using Eq. 1 in the homework instructions
-        # x_COM = sum(xi + mi) / sum(mi)
-        # xcomponent Center of mass
-        a_com = np.sum(a * m) / np.sum(m)
-        # ycomponent Center of mass
-        b_com = np.sum(b * m) / np.sum(m)
-        # zcomponent Center of mass
-        c_com = np.sum(c * m) / np.sum(m)
         
-        # return the 3 components separately
-        return a_com, b_com, c_com
-    
-    
-    def COM_P(self, delta):
-        '''Method to compute the position of the center of mass of the galaxy 
-        using the shrinking-sphere method.
+        # Weighted sum in each dimension
+        a_com = np.sum(a * m) / np.sum(m)
+        b_com = np.sum(b * m) / np.sum(m)
+        c_com = np.sum(c * m) / np.sum(m)
 
+        return a_com, b_com, c_com
+
+
+    def COM_P(self, delta=0.1):
+        '''
+        Method to compute the position of the center of mass of the galaxy 
+        using the shrinking-sphere method, iterating until convergence.
+        
         PARAMETERS
         ----------
-        delta : `float, optional`
-            error tolerance in kpc. Default is 0.1 kpc
+        delta : float, optional
+            Error tolerance in kpc for stopping criterion. Default = 0.1 kpc
         
         RETURNS
-        ----------
-        p_COM : `np.ndarray of astropy.Quantity'
-            3-D position of the center of mass in kpc
-        '''                                                                     
-
-        # Center of Mass Position                                                                                      
-        ###########################                                                                                    
-
-        # Try a first guess at the COM position by calling COMdefine                                                   
+        -------
+        p_COM : np.ndarray of astropy.Quantity
+            3-D position of the center of mass in kpc (rounded to 2 decimals)
+        '''
+        
+        # 1) First guess at COM position using all particles
         x_COM, y_COM, z_COM = self.COMdefine(self.x, self.y, self.z, self.m)
-        # compute the magnitude of the COM position vector.
-        # write your own code below
-        r_COM = np.sqrt(x_COM ** 2 + y_COM ** 2 + z_COM ** 2)
-
-
-        # iterative process to determine the center of mass                                                            
-
-        # change reference frame to COM frame                                                                          
-        # compute the difference between particle coordinates                                                          
-        # and the first guess at COM position
-        # write your own code below
+        
+        # 2) Compute the magnitude of the COM position vector
+        r_COM = np.sqrt(x_COM**2 + y_COM**2 + z_COM**2)
+        
+        # 3) Shift to COM frame (for the *initial* guess)
         x_new = self.x - x_COM
         y_new = self.y - y_COM
         z_new = self.z - z_COM
-        r_new = np.sqrt(x_new ** 2 + y_new ** 2 + z_new ** 2)
-
-        # find the max 3D distance of all particles from the guessed COM                                               
-        # will re-start at half that radius (reduced radius)                                                           
-        r_max = max(r_new)/2.0
+        r_new = np.sqrt(x_new**2 + y_new**2 + z_new**2)
         
-        # pick an initial value for the change in COM position                                                      
-        # between the first guess above and the new one computed from half that volume
-        # it should be larger than the input tolerance (delta) initially
+        # 4) Find the maximum 3D distance from this COM, then halve it
+        r_max = np.max(r_new) / 2.0
+        
+        # 5) Set an initial change to be very large (so loop starts)
         change = 1000.0
-
-        # start iterative process to determine center of mass position                                                 
-        # delta is the tolerance for the difference in the old COM and the new one.    
         
+        # 6) Iteratively refine until the COM position changes by less than delta
         while (change > delta):
-            # select all particles within the reduced radius (starting from original x,y,z, m)
-            # write your own code below (hints, use np.where)
+            
+            # Select particles within the reduced radius from the ORIGINAL positions,
+            # but recentered around the last COM guess
+            x_new = self.x - x_COM
+            y_new = self.y - y_COM
+            z_new = self.z - z_COM
+            r_new = np.sqrt(x_new**2 + y_new**2 + z_new**2)
+            
             index2 = np.where(r_new < r_max)
+            
+            # Retrieve only those particles
             x2 = self.x[index2]
             y2 = self.y[index2]
             z2 = self.z[index2]
             m2 = self.m[index2]
-
-            # Refined COM position:                                                                                    
-            # compute the center of mass position using                                                                
-            # the particles in the reduced radius
-            # write your own code below
+            
+            # Recompute COM with these "in-sphere" particles
             x_COM2, y_COM2, z_COM2 = self.COMdefine(x2, y2, z2, m2)
-            # compute the new 3D COM position
-            # write your own code below
-            r_COM2 = np.sqrt(x_COM2 ** 2 + y_COM2 ** 2 + z_COM2 ** 2)
-
-            # determine the difference between the previous center of mass position                                    
-            # and the new one.                                                                                         
+            r_COM2 = np.sqrt(x_COM2**2 + y_COM2**2 + z_COM2**2)
+            
+            # Check how much COM changed from previous iteration
             change = np.abs(r_COM - r_COM2)
-            # uncomment the following line if you want to check this                                                                                               
-            # print ("CHANGE = ", change)                                                                                     
-
-            # Before loop continues, reset : r_max, particle separations and COM                                        
-
-            # reduce the volume by a factor of 2 again                                                                 
+            # print("CHANGE = ", change)
+            
+            # Halve the radius again for the next iteration
             r_max /= 2.0
-            # check this.                                                                                              
-            # print ("maxR", r_max)                                                                                      
-
-
-            # Change the frame of reference to the newly computed COM.                                                 
-            # subtract the new COM
-            # write your own code below
-            x_new = self.x - x_COM2
-            y_new = self.y - y_COM2
-            z_new = self.z - z_COM2
-            r_new = np.sqrt(x_new ** 2 + y_new ** 2 + z_new ** 2)
-
-            # set the center of mass positions to the refined values                                                   
-            x_COM = x_COM2 
-            y_COM = y_COM2 
+            
+            # Reset COM values to the newly computed values for next loop
+            x_COM = x_COM2
+            y_COM = y_COM2
             z_COM = z_COM2
-            r_COM = r_COM2 
-
-            # create an array (np.array) to store the COM position                                                                                                                                                       
-            p_COM = np.array([x_COM, y_COM, z_COM])
-
-        # set the correct units using astropy and round all values (2 decimals)
-        # and then return the COM positon vector
-        # write your own code below
-            return np.round(p_COM, 2) * u.kpc
+            r_COM = r_COM2
         
-    def COM_V(self, x_COM, y_COM, z_COM):
-        ''' Method to compute the center of mass velocity based on the center of mass
-        position.
+        # Once convergence is reached:
+        p_COM = np.array([x_COM, y_COM, z_COM]) * u.kpc
+        # Round to 2 decimal places
+        p_COM = np.round(p_COM, 2)
+        
+        return p_COM
 
+
+    def COM_V(self, x_COM, y_COM, z_COM):
+        '''
+        Method to compute the center of mass velocity based on the center of mass position.
+        
         PARAMETERS
         ----------
-        x_COM : 'astropy quantity'
-            The x component of the center of mass in kpc
-        y_COM : 'astropy quantity'
-            The y component of the center of mass in kpc
-        z_COM : 'astropy quantity'
-            The z component of the center of mass in kpc
+        x_COM : astropy.Quantity
+            The x component of the COM in kpc
+        y_COM : astropy.Quantity
+            The y component of the COM in kpc
+        z_COM : astropy.Quantity
+            The z component of the COM in kpc
             
         RETURNS
         -------
-        v_COM : `np.ndarray of astropy.Quantity'
-            3-D velocity of the center of mass in km/s
+        v_COM : np.ndarray of astropy.Quantity
+            3-D velocity of the center of mass in km/s (rounded to 2 decimals)
         '''
         
-        # the max distance from the center that we will use to determine 
-        #the center of mass velocity                   
-        rv_max = 15.0*u.kpc
+        # Maximum distance from the center to consider when computing COM velocity
+        rv_max = 15.0 * u.kpc
         
-        # determine the position of all particles relative to the center of mass position (x_COM, y_COM, z_COM)
-        # write your own code below
-        xV = self.x * u.kpc - x_COM
-        yV = self.y * u.kpc - y_COM
-        zV = self.z * u.kpc - z_COM
-        rV = np.sqrt(xV ** 2 + yV ** 2 + zV ** 2)
+        # Convert COM to "raw" floats if needed
+        # (Assuming self.x etc. are in kpc, we can handle them directly)
+        xC = x_COM.value
+        yC = y_COM.value
+        zC = z_COM.value
         
-        # determine the index for those particles within the max radius
-        # write your own code below
-        indexV = np.where(rV < rv_max)
+        # Determine positions relative to the COM
+        xV = self.x - xC
+        yV = self.y - yC
+        zV = self.z - zC
         
-        # determine the velocity and mass of those particles within the mas radius
-        # write your own code below
-        # Note that x_COM, y_COM, z_COM are astropy quantities and you can only subtract one astropy quantity from another
-        # So, when determining the relative positions, assign the appropriate units to self.x
+        # 3D distance of each particle from COM
+        rV = np.sqrt(xV**2 + yV**2 + zV**2)
+        
+        # Select those particles within rv_max
+        indexV = np.where(rV < rv_max.value)
+        
+        # Retrieve velocities for those particles
         vx_new = self.vx[indexV]
         vy_new = self.vy[indexV]
-        vz_new = self.vz[indexV] 
-        m_new =  self.m[indexV]
+        vz_new = self.vz[indexV]
+        m_new  = self.m[indexV]
         
-        # compute the center of mass velocity using those particles
-        # write your own code below
+        # Compute COM velocity
         vx_COM, vy_COM, vz_COM = self.COMdefine(vx_new, vy_new, vz_new, m_new)
         
-        # create an array to store the COM velocity
-        # write your own code below
-        v_COM = np.array([vx_COM, vy_COM, vz_COM])  * u.km / u.s
-
-        # return the COM vector
-        # set the correct units usint astropy
-        # round all values                                                                                        
-        return np.round(v_COM, 2)
+        # Create an array for the COM velocity and convert to astropy with km/s
+        v_COM = np.array([vx_COM, vy_COM, vz_COM]) * u.km/u.s
+        # Round to 2 decimal places
+        v_COM = np.round(v_COM, 2)
+        
+        return v_COM
